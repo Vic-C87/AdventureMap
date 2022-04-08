@@ -52,11 +52,11 @@ namespace AdventureMap
 		{
 			Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-			GenerateMap(width, height);
+			GenerateMap();
 			DrawMap();
 		}
 
-		static void GenerateMap(int width, int height)
+		static void GenerateMap()
 		{
 			//Initiate 2D array of char and fill it with empty char
 			map = new char[width, height];
