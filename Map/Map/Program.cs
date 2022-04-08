@@ -340,6 +340,7 @@ namespace AdventureMap
 					}
 					if (y == 1 && x >= (width - mapTitle.Length) / 2 && x < width - (width - mapTitle.Length) / 2 - 1)
 					{
+						//Title tiles
 						Console.BackgroundColor = ConsoleColor.Black;
 						Console.ForegroundColor = ConsoleColor.DarkYellow;
 					}
