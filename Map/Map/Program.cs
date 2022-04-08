@@ -10,6 +10,7 @@ namespace AdventureMap
 		const int width = 100;
 		const int height = 30;
 
+		//Set what symbols that will be used for the diffrent tiles in the map
 		const char forest = 'T';
 		const char borderCornerUpperLeft = '\u250F';
 		const char borderCornerUpperRight = '\u2513';
@@ -25,16 +26,27 @@ namespace AdventureMap
 		const char bridge = '#';
 		const char leftTurrent = '[';
 		const char rightTurrent = ']';
+
+		//Title of map that will be printed at the top of the map
 		const string mapTitle = "ADVENTURE MAP";
 
+		//A variable that will be changed between 'curveLeft', 'curveRight' and 'curveVertical'. This will be dependent on the direction of the curve.
+		//This is the variable that will ultimatly be printed to the map
 		static char curveTile;
+		
+		//Variables to help determening where the large road on the map intersects with the river and with the wall
 		static int riverCrossingX;
 		static int riverCrossingY;
 		static int wallCrossingX;
 		static int wallCrossingY;
 
+		//The acctual map
 		static char[,] map;
+
+		//List of x-coordinates of the river position so a small road can trace the river path and run along side it
 		static List<int> riverPos = new List<int>();
+
+		static Random random = new Random();
 
 		static void Main(string[] args)
 		{
@@ -79,7 +91,7 @@ namespace AdventureMap
 						SetTile(x, y, forest);
 						continue;
 					}
-					//Randomly generate trees with lesser frequensy the further to the right of the map we are
+					//Randomly generate trees with lesser frequency the further to the right of the map we are
 					if (0 == GetRandom(x))
 					{
 						SetTile(x, y, forest);
@@ -104,8 +116,8 @@ namespace AdventureMap
 			SetTile(1, startY, road);
 			for (int x = 2; x < width; x++)
 			{
-				direction = GetRandom(10);
 				//Get a 10% chans of the road going either up or down
+				direction = GetRandom(10);
 				if (direction == 0)
 				{
 					startY--;
@@ -122,6 +134,7 @@ namespace AdventureMap
 		{
 			//Starting position of curved tiles where xStartPosProcent is a double between 0 and 1 representing procential of distance from left
 			int startX = (int)((double)width * xStartPosProcent);
+			//Used to determine if road changes direction
 			int direction;
 			//Used to determine where the curved tiles intersect with road
 			crossingX = 0;
@@ -132,6 +145,7 @@ namespace AdventureMap
 			{
 				//Set tile as straight at beginning of each iteration before evaluating if curve turns
 				tile = curveVertical;
+
 				direction = GetRandom(randomizeValue);
 				if (direction == 0)
 				{
@@ -144,14 +158,17 @@ namespace AdventureMap
 					tile = curveRight;
 				}
 
+				//Check if curve intersects with road and if so save the x,y -coordinates to help generate bridge over river or opening in wall
 				if (map[startX - 1, y] == road || map[startX, y] == road || map[startX + 1, y] == road)
 				{
 					crossingX = startX;
 					crossingY = y;
 				}
+
+				//The river will have a small road tracing its path so save the x-coordinates to a list to help with that if the curve is a river curve
+				//Regardless the coordinates will be sent through 'CurveStep'-method with a paramether that determines width of curve
 				if (isRiverCurve)
-				{
-					//Ad direction of river curve to a List so a road can trace the path of the curve 
+				{ 
 					riverPos.Add(startX);
 					CurveStep(startX, y, 3);
 				}
@@ -164,7 +181,7 @@ namespace AdventureMap
 
 		static void CurveStep(int xPos, int yPos, int steps)
 		{
-			//Sets how wide(x-steps) the curve is
+			//Sets how wide(x-steps) the curve is and adds tiles to map
 			for (int x = xPos; x < xPos + steps; x++)
 			{
 				SetTile(x, yPos, curveTile);
@@ -187,6 +204,7 @@ namespace AdventureMap
 			SetTile(wallCrossingX, wallCrossingY - 1, leftTurrent);
 			SetTile(wallCrossingX + 1, wallCrossingY - 1, rightTurrent);
 
+			//Change wall tile in wall opening to road tile
 			SetTile(wallCrossingX, wallCrossingY, road);
 			SetTile(wallCrossingX + 1, wallCrossingY, road);
 
@@ -197,12 +215,15 @@ namespace AdventureMap
 
 		static void GenerateBridge()
 		{
+			//Generate bridge over river at intersection
 			for (int x = riverCrossingX - 2; x <= riverCrossingX + 5; x++)
 			{
 				SetTile(x, riverCrossingY - 1, bridgeRailing);
 				SetTile(x, riverCrossingY, bridge);
 				SetTile(x, riverCrossingY + 1, bridgeRailing);
 			}
+
+
 			//Place road tiles along beginning and end of bridge so the transition from bridge to road looks smoother
 
 			SetTile(riverCrossingX - 3, riverCrossingY - 1, road);
@@ -217,17 +238,13 @@ namespace AdventureMap
 		static void GenerateSmallRoad()
 		{
 			//The small road traces the path of the river
+
+			//The list of x-coordinates of the river path starts from the very top of the map but the small road should only run from where the large road intersects the river and downwards
+			//Therefor the riverCrossingY variable can be used as start index in the riverPos-List so the road then matches the river path 
 			int x = riverCrossingY;
 			for (int y = riverCrossingY + 1; y < height; y++)
 			{
-				if (x <= 0)
-				{
-					x = 0;
-				}
-				if (x >= riverPos.Count - 1)
-				{
-					x = riverPos.Count - 1;
-				}
+				//The road shall run 4 tiles left of river
 				SetTile(riverPos[x] - 4, y, road);
 				x++;
 			}
@@ -262,6 +279,7 @@ namespace AdventureMap
 		{
 			//Print map title at top middle of map
 			int titleXPos = (width - mapTitle.Length) / 2;
+
 			int titleLetterIndex = 0;
 			//Print each letter of string one at a time
 			for (int x = titleXPos; x < titleXPos + mapTitle.Length; x++)
@@ -283,6 +301,7 @@ namespace AdventureMap
 			{
 				for (int x = 0; x < width; x++)
 				{
+					//Check array to se what symbol it contains then change console color accordingly 
 					Console.BackgroundColor = ConsoleColor.Green; //Grass tiles
 					if (map[x, y] == forest)
 					{
@@ -347,7 +366,7 @@ namespace AdventureMap
 
 		static int GetRandom(int max)
 		{
-			Random random = new Random();
+			
 			int result = random.Next(max);
 			return result;
 		}
